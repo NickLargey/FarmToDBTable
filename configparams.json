@@ -1,0 +1,6 @@
+{
+    "dbname": "farm2db",
+    "user": "postgres",
+    "password": "password",
+    "host": "localhost"
+}
