@@ -50,16 +50,38 @@ Edit `configparams.json` with your database details:
 ```
 ## Run the Script
 
-Navigate to the script's directory in a terminal or command prompt, and execute:
+Navigate to the script's directory in a terminal or command prompt and execute:
 
 ```bash
 python import_create_table_data.py
 ```
-**Database Verification:** Post-execution, check the database to ensure proper data population and associations.
+## Run Table Statistics in pgAdmin
 
-### Additional Information
+To verify table population using pgAdmin:
+
+1. **Open pgAdmin**: Launch pgAdmin and connect to your PostgreSQL database.
+
+2. **Navigate to Your Database**: In the Browser panel, navigate to your database.
+
+3. **Open Query Tool**:
+    - Right-click on your database.
+    - Select 'Query Tool' from the context menu.
+
+4. **Load and Execute Script**:
+    - In the Query Tool, click on the 'Open File' icon.
+    - Navigate to and select the `TableStats.sql` file.
+    - After the file contents are loaded into the Query Tool, execute the script by clicking the 'Execute/Refresh' button (F5).
+
+This will run the `TableStats.sql` script and display a count of records in each table, confirming the successful data import and associations.
+
+Note: Ensure `TableStats.sql` is located in an accessible directory on your computer.
+
+
+## Additional Information
+
+
 The script assumes all entities are in Maine, using default values for missing data.
-Some of the information is real and publicly available, such as the producers and public school related tables.
+Some information is real and publicly available, such as the producers and public school-related tables.
 Others, entirely fictional, made to fill out the database for us to test it out:
 - Food items (inspired/filled with the top food items found in the MaineProducer.Csv file)
 - Hubs (one for each county of Maine)
@@ -67,6 +89,6 @@ Others, entirely fictional, made to fill out the database for us to test it out:
 
 
 **Connection Issues:** If there are issues connecting to the database, check the PostgreSQL server status and configparams.json credentials.
-This script will clobber any old versions of this database. If you see an error about not being able to delete due to another application using the database, close out any open queries in pgadmin. 
+This script will clobber any old versions of this database. If you see an error about being unable to delete because of another application using the database, please close out any open queries in pgadmin. 
 
 
