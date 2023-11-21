@@ -6,17 +6,20 @@ import string
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-import time
+import random
+
 
 def database_exists(conn, dbname):
     with conn.cursor() as cur:
         cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", (dbname,))
         return cur.fetchone() is not None
 
+
 def drop_and_create_database(db_config):
     # Connect to the PostgreSQL server
-    conn = psycopg2.connect(user=db_config["user"], password=db_config["password"], host=db_config["host"])
-    
+    conn = psycopg2.connect(
+        user=db_config["user"], password=db_config["password"], host=db_config["host"], port=db_config["port"])
+
     # Set the isolation level for the connection to AUTOCOMMIT
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
@@ -31,7 +34,8 @@ def drop_and_create_database(db_config):
     finally:
         # Close the connection
         conn.close()
-            
+
+
 def execute_sql_file(filename, connection):
     with open(filename, 'r') as file:
         sql_script = file.read()
@@ -66,10 +70,12 @@ def import_schools(cursor):
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (sch_id, sch_name, sch_email, sch_phone, sch_address, sch_city, sch_state, sch_zip, sch_county))
 
+
 def create_hubs(cursor):
     # List of counties in Maine
-    counties = ["Cumberland", "Franklin", "Piscataquis", "Kennebec", "Oxford", "Androscoggin", "Waldo", "Washington", "York", "Lincoln", "Knox", "Hancock", "Sagadahoc", "Somerset", "Aroostook", "Penobscot"]
-    
+    counties = ["Cumberland", "Franklin", "Piscataquis", "Kennebec", "Oxford", "Androscoggin", "Waldo",
+                "Washington", "York", "Lincoln", "Knox", "Hancock", "Sagadahoc", "Somerset", "Aroostook", "Penobscot"]
+
     for county in counties:
         # Create a hub for each county (adjust the values as needed)
         hub_name = county + " Hub"
@@ -82,15 +88,18 @@ def create_hubs(cursor):
             INSERT INTO HUB (hub_name, hub_address, hub_city, hub_state, hub_zip, hub_hours, hub_county)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (hub_name, hub_address, hub_city, 'ME', hub_zip, hub_hours, county))
-        
+
+
 def import_producers(cursor):
     with open('MaineProducers.csv', 'r') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             pro_name = row['Farm/Producer']
-            pro_email = row.get('Email', 'Not provided')  # Default value if not provided
+            # Default value if not provided
+            pro_email = row.get('Email', 'Not provided')
             pro_phone = row.get('Phone', 'Not provided')
             pro_address = row['Address']
+            pro_address = pro_address.split(',')[0]
             pro_city = row['Town']
             pro_state = 'ME'  # Assuming Maine
             pro_zip = '00000'  # Not provided in our data
@@ -111,14 +120,16 @@ def get_food_item_counts(macro_columns):
                 if row[macro]:  # Check if the macro column is not empty
                     # Remove punctuation, split the string into individual words, make lowercase and strip spaces
                     translator = str.maketrans('', '', string.punctuation)
-                    items = [word.translate(translator).strip().lower() 
-                             for item in row[macro].split(',') 
+                    items = [word.translate(translator).strip().lower()
+                             for item in row[macro].split(',')
                              for word in item.split()]
                     # Filter out empty strings
                     items = [item for item in items if item]
                     # Update the counter with the list of food items
                     food_counter.update(items)
-    return food_counter.most_common(100)  # Return the top 100 most common items
+    # Return the top 100 most common items
+    return food_counter.most_common(100)
+
 
 def associate_producers_with_hubs(cursor):
     cursor.execute("SELECT hub_id, hub_county FROM hub")
@@ -129,7 +140,9 @@ def associate_producers_with_hubs(cursor):
     for pro_id, pro_county in producers:
         hub_id = hub_map.get(pro_county)
         if hub_id:
-            cursor.execute("INSERT INTO hub_producer (hub_id, pro_id) VALUES (%s, %s)", (hub_id, pro_id))
+            cursor.execute(
+                "INSERT INTO hub_producer (hub_id, pro_id) VALUES (%s, %s)", (hub_id, pro_id))
+
 
 def associate_schools_with_hubs(cursor):
     cursor.execute("SELECT hub_id, hub_county FROM hub")
@@ -140,37 +153,38 @@ def associate_schools_with_hubs(cursor):
     for sch_id, sch_county in schools:
         hub_id = hub_map.get(sch_county)
         if hub_id:
-            cursor.execute("INSERT INTO hub_school (hub_id, sch_id) VALUES (%s, %s)", (hub_id, sch_id))
- 
- 
+            cursor.execute(
+                "INSERT INTO hub_school (hub_id, sch_id) VALUES (%s, %s)", (hub_id, sch_id))
+
+
 def associate_producers_with_food_items(cursor):
     # Define the date range and create a list of months
-    start_date = datetime(2022, 8, 1)
-    end_date = datetime(2023, 8, 31)
+    start_date = datetime(2023, 8, 1)
+    # end_date = datetime(2024, 2, 31)
     months = [start_date + timedelta(days=i * 30) for i in range(12)]
-    
+
     food_macro_dict = {
-    'vegetables': {'items': ['greens', 'tomatoes', 'carrots', 'potatoes', 'garlic', 'squash', 'lettuce', 'onions', 'peppers', 'corn', 'beets', 'cucumbers'], 'unit': 'lb'},
-    'meat': {'items': ['beef', 'pork', 'chicken', 'sausage'], 'unit': 'lb'},
-    'seafood': {'items': ['clam', 'oyster', 'scallop', 'cod', 'haddock', 'crab', 'mussel'], 'unit': 'lb'},
-    'eggs': {'items': ['eggs'], 'unit': 'each'},
-    'dairy': {'items': ['milk', 'cheese', 'yogurt'], 'unit': 'lb'},
-    'fruits': {'items': ['apples', 'blueberries', 'strawberries', 'beans', 'raspberries', 'peaches', 'pears'], 'unit': 'lb'},
-    'grains': {'items': ['flour', 'oats', 'cornmeal'], 'unit': 'lb'},
-    'maple': {'items': ['maple syrup'], 'unit': 'pint'}
+        'vegetables': {'items': ['greens', 'tomatoes', 'carrots', 'potatoes', 'garlic', 'squash', 'lettuce', 'onions', 'peppers', 'corn', 'beets', 'cucumbers'], 'unit': 'lb'},
+        'meat': {'items': ['beef', 'pork', 'chicken', 'sausage'], 'unit': 'lb'},
+        'seafood': {'items': ['clam', 'oyster', 'scallop', 'cod', 'haddock', 'crab', 'mussel'], 'unit': 'lb'},
+        'eggs': {'items': ['eggs'], 'unit': 'each'},
+        'dairy': {'items': ['milk', 'cheese', 'yogurt'], 'unit': 'lb'},
+        'fruits': {'items': ['apples', 'blueberries', 'strawberries', 'beans', 'raspberries', 'peaches', 'pears'], 'unit': 'lb'},
+        'grains': {'items': ['flour', 'oats', 'cornmeal'], 'unit': 'lb'},
+        'maple': {'items': ['maple syrup'], 'unit': 'pint'}
     }
-    
+
     # Initialize the macro index
     macro_index = 0
-    
+
     # Define attribute ranges
     quantity_range = (1, 1000)  # Example: Quantity range from 1 to 1000
     cost_range = (1.0, 5.0)  # Example: Cost per quantity range from 1.0 to 5.0
-    
+
     # Initialize attribute values
     current_quantity = quantity_range[0]
     current_cost = cost_range[0]
-    
+
     # Loop through producer IDs in the range 1 to 517
     for pro_id in range(1, 518):
         for month in months:
@@ -180,7 +194,8 @@ def associate_producers_with_food_items(cursor):
             unit = food_macro_dict[current_macro]['unit']
 
             # Choose a food item from the current macro's list based on the month
-            food_item = food_items[(month.month - 1) % len(food_items)]  # Repeat available items
+            food_item = food_items[(month.month - 1) %
+                                   len(food_items)]  # Repeat available items
 
             # Extract the relevant values from food_macro_dict
             fi_name = food_item
@@ -209,13 +224,13 @@ def associate_producers_with_food_items(cursor):
 
             # Move to the next macro (cycling back to the first macro if necessary)
             macro_index = (macro_index + 1) % len(food_macro_dict)
-            
+
         cursor.connection.commit()  # Commit the changes to the database
-            
-            
+
+
 def create_purchase_orders_for_schools(cursor):
-    start_date = datetime(2022, 8, 1)
-    end_date = datetime(2023, 7, 31)
+    start_date = datetime(2023, 8, 1)
+    end_date = datetime(2024, 7, 31)
     current_date = start_date
 
     # List of different quantities
@@ -223,14 +238,15 @@ def create_purchase_orders_for_schools(cursor):
 
     while current_date <= end_date:
         for hub_id in range(1, 17):
-            
+
             # Define the first and last day of the current month
             first_day_of_month = current_date.replace(day=1)
             if current_date.month == 12:
                 last_day_of_month = current_date.replace(day=31)
             else:
-                last_day_of_month = current_date.replace(day=1, month=current_date.month + 1, year=current_date.year) - timedelta(days=1)
-            
+                last_day_of_month = current_date.replace(
+                    day=1, month=current_date.month + 1, year=current_date.year) - timedelta(days=1)
+
             # Retrieve food items for the hub
             cursor.execute("""
                 SELECT fi.fi_id, fi.fi_quantity
@@ -261,9 +277,14 @@ def create_purchase_orders_for_schools(cursor):
                 continue
 
             for school in schools:
+                status = ['Awaiting Fulfillment',
+                          'Ready at Hub', 'Completed Pickup']
+                random_index = random.randint(0, len(status) - 1)
                 fi_id, fi_quantity = food_items[0]
-                order_quantity = min(fi_quantity, order_quantities[school[0] % len(order_quantities)])  # Use order_quantities list
-                purchase_order = (current_date, order_quantity, order_quantity * 2.5, fi_id, 'Awaiting Fulfillment')
+                order_quantity = min(fi_quantity, order_quantities[school[0] % len(
+                    order_quantities)])  # Use order_quantities list
+                purchase_order = (current_date, order_quantity,
+                                  order_quantity * 2.5, fi_id, status[random_index])
 
                 # Insert purchase order
                 cursor.execute("""
@@ -293,16 +314,16 @@ def create_purchase_orders_for_schools(cursor):
                 cursor.connection.commit()
 
         current_date += relativedelta(months=1)
-        
-        
+
+
 def populate_volunteers_and_roles(cursor):
     # Volunteer first names and role names
     volunteer_first_names = ["Aimee", "Nick", "Sean"]
     role_names = ["Hub Attendant", "Producer Pick Up", "School Drop Off"]
 
     # Start and end dates for the roles
-    start_date = datetime(2022, 8, 1)
-    end_date = datetime(2023, 7, 31)
+    start_date = datetime(2023, 8, 1)
+    end_date = datetime(2024, 7, 31)
 
     # Query to get hub data
     cursor.execute("SELECT hub_id, hub_county FROM hub")
@@ -315,9 +336,12 @@ def populate_volunteers_and_roles(cursor):
         # Add volunteers for this hub
         for first_name in volunteer_first_names:
             vol_name = f"{first_name} {volunteer_last_name}"
+            volunteer_email = f"{first_name.lower()}.{volunteer_last_name.lower()}@netscape.com"
+            volunteer_phone = "(207) " + str(random.randint(200, 999)
+                                             ) + "-" + str(random.randint(1000, 9999))
             cursor.execute("""
-                INSERT INTO volunteer (vol_name, vol_hub) VALUES (%s, %s)
-            """, (vol_name, hub_id))
+                INSERT INTO volunteer (vol_name, vol_hub, vol_email, vol_phone) VALUES (%s, %s, %s, %s)
+            """, (vol_name, hub_id, volunteer_email, volunteer_phone))
             cursor.connection.commit()
 
         while current_date <= end_date:
@@ -332,7 +356,7 @@ def populate_volunteers_and_roles(cursor):
                         VALUES (%s, %s, %s, '09:00:00', '17:00:00')
                     """, (role_name, vrol_description, role_date))
                     cursor.connection.commit()
-                    
+
                     # Create a hub_role association for each role_slot
                     cursor.execute("SELECT LASTVAL()")
                     last_vrol_id = cursor.fetchone()[0]
@@ -344,7 +368,8 @@ def populate_volunteers_and_roles(cursor):
 
                     # Randomly decide whether to fill this role slot
                     if week % 2 == 0:  # Example condition to fill some slots
-                        cursor.execute("SELECT vol_id FROM volunteer WHERE vol_hub = %s LIMIT 1", (hub_id,))
+                        cursor.execute(
+                            "SELECT vol_id FROM volunteer WHERE vol_hub = %s LIMIT 1", (hub_id,))
                         volunteer = cursor.fetchone()
                         if volunteer:
                             # Get the last inserted vrol_id
@@ -364,7 +389,7 @@ def main():
     # Load database configuration from json file
     with open('configparams.json', 'r') as file:
         db_config = json.load(file)
-    
+
     # Drop the existing database (if it exists) and create a new one
     drop_and_create_database(db_config)
 
@@ -376,7 +401,7 @@ def main():
 
             # Execute the TruncateAndResetIndex.sql script in case index is left over from old db
             execute_sql_file('TruncateAndResetIndex.sql', conn)
-            
+
             # Fill the tables
             import_schools(cursor)
             create_hubs(cursor)
@@ -386,9 +411,7 @@ def main():
             associate_producers_with_food_items(cursor)
             create_purchase_orders_for_schools(cursor)
             populate_volunteers_and_roles(cursor)
-            
-            
+
 
 if __name__ == "__main__":
     main()
-
