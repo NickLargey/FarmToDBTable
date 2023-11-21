@@ -11,7 +11,7 @@ This Python script, `create_db_and_fill.py`, automates the population of a Postg
 
 Before running this script, you should have:
 
-1. **Python**: Python 3.6 or higher installed. [Download Python](https://www.python.org/downloads/).
+1. **Python**: Python installed. [Download Python](https://www.python.org/downloads/).
 
 2. **PostgreSQL Database**: A running instance of PostgreSQL. This script is compatible with PostgreSQL 14/15 and similar versions. [Download PostgreSQL](https://www.postgresql.org/download/).
 
