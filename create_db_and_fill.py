@@ -6,7 +6,6 @@ import string
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-import time
 
 def database_exists(conn, dbname):
     with conn.cursor() as cur:
@@ -146,8 +145,8 @@ def associate_schools_with_hubs(cursor):
 def associate_producers_with_food_items(cursor):
     # Define the date range and create a list of months
     start_date = datetime(2022, 8, 1)
-    end_date = datetime(2023, 8, 31)
-    months = [start_date + timedelta(days=i * 30) for i in range(12)]
+    end_date = datetime(2023, 11, 30)
+    months = [start_date + timedelta(days=i * 30) for i in range(16)]
     
     food_macro_dict = {
     'vegetables': {'items': ['greens', 'tomatoes', 'carrots', 'potatoes', 'garlic', 'squash', 'lettuce', 'onions', 'peppers', 'corn', 'beets', 'cucumbers'], 'unit': 'lb'},
@@ -215,8 +214,10 @@ def associate_producers_with_food_items(cursor):
             
 def create_purchase_orders_for_schools(cursor):
     start_date = datetime(2022, 8, 1)
-    end_date = datetime(2023, 7, 31)
+    end_date = datetime(2023, 11, 30)
     current_date = start_date
+    # All orders before this month will be completed, all orders this month are 
+    completion_cutoff_date = datetime(2023, 11, 1)
 
     # List of different quantities
     order_quantities = [25, 50, 75, 100, 125, 150, 175, 200, 225, 250]
@@ -263,14 +264,20 @@ def create_purchase_orders_for_schools(cursor):
             for school in schools:
                 fi_id, fi_quantity = food_items[0]
                 order_quantity = min(fi_quantity, order_quantities[school[0] % len(order_quantities)])  # Use order_quantities list
-                purchase_order = (current_date, order_quantity, order_quantity * 2.5, fi_id, 'Awaiting Fulfillment')
+                
+                # Determine the status based on the current_date
+                if current_date < completion_cutoff_date:
+                    status = 'Completed Pickup'
+                else:
+                    status = 'Awaiting Fulfillment'
 
-                # Insert purchase order
+                # Insert purchase order with the determined status
                 cursor.execute("""
                     INSERT INTO purchase_order (pur_date, pur_quantity, pur_total_price, pur_fi_id, pur_status)
                     VALUES (%s, %s, %s, %s, %s) RETURNING pur_id
-                """, purchase_order)
+                """, (current_date, order_quantity, order_quantity * 2.5, fi_id, status))
                 pur_id = cursor.fetchone()[0]
+
 
                 # Insert school_purchase_order
                 cursor.execute("""
@@ -302,7 +309,7 @@ def populate_volunteers_and_roles(cursor):
 
     # Start and end dates for the roles
     start_date = datetime(2022, 8, 1)
-    end_date = datetime(2023, 7, 31)
+    end_date = datetime(2023, 11, 30)
 
     # Query to get hub data
     cursor.execute("SELECT hub_id, hub_county FROM hub")
