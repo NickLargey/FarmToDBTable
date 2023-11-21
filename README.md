@@ -1,11 +1,11 @@
 # FarmToDBTable
 COS457 Group Project
 
-# README: import_create_table_data.py
+# README: create_db_and_fill.py
 
 ## Overview
 
-This Python script, `import_create_table_data.py`, automates the population of a PostgreSQL database with data related to Maine's food hubs. It includes importing data from CSV files into various database tables, creating associations between entities like schools and producers, and initializing certain logistics information for food distribution.
+This Python script, `create_db_and_fill.py`, automates the population of a PostgreSQL database with data related to Maine's food hubs. It includes importing data from CSV files into various database tables, creating associations between entities like schools and producers, and initializing certain logistics information for food distribution.
 
 ## Prerequisites
 
