@@ -21,8 +21,9 @@ Install the required Python libraries using pip:
 
 ```bash
 pip install psycopg2
-- `psycopg2`: A PostgreSQL database adapter for Python.
 ```
+- `psycopg2`: A PostgreSQL database adapter for Python.
+
 
 ## Required Files
 
