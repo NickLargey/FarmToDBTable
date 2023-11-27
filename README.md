@@ -54,7 +54,7 @@ Edit `configparams.json` with your database details:
 Navigate to the script's directory in a terminal or command prompt and execute:
 
 ```bash
-python import_create_table_data.py
+python create_db_and_fill.py
 ```
 ## Run Table Statistics in pgAdmin
 
