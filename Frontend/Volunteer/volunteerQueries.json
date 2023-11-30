@@ -1,0 +1,14 @@
+[
+  {
+    "label": "hubs in county",
+    "value": "SELECT * FROM HUB WHERE hub_county = 'Cumberland';"
+  },
+  {
+    "label": "schools in county",
+    "value": "SELECT * FROM SCHOOL WHERE sch_county = 'Cumberland';"
+  },
+  {
+    "label": "farms in county",
+    "value": "SELECT * FROM PRODUCER WHERE pro_county = 'Cumberland';"
+  }
+]

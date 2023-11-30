@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Farm to DataBase Table</title>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
   </head>
   <style>
@@ -69,38 +69,40 @@
     <main>
       <div class="users">
         <h2>Please select what best describes your use:</h2>
-        <a href="school_index.html">School</a>
-        <a href="farm_index.html">Farm</a>
-        <a href="volunteer_index.html">Volunteer</a>
+        <a href="./School/school_index.html">School</a>
+        <a href="./Farm/farm_index.html">Farm</a>
+        <a href="./Volunteer/volunteer_index.html">Volunteer</a>
       </div>
-      <!-- <div class="login">
+      <div class="login">
         <h2>If you have an existing account, please:</h2>
         <h2>Login</h2>
       <form id="loginForm">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required><br><br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password"><br><br>
+        <!-- <label for="password">Password:</label>
+        <input type="password" id="password" name="password"><br><br> -->
+        <label for="userType">Select your type:</label>
+        <select id="userType" name="userType">
+          <option value="school">School</option>
+          <option value="producer">Producer</option>
+          <option value="volunteer">Volunteer</option>
+        </select><br><br>
         <input type="submit" value="Login">
     </form>
     <div id="message"></div>
-    <script src="login.js"></script> -->
-    <!-- </div>
+    </div>
       <div class="registration">
           <h2>If you do not have an existing account, please:</h2>
           <h2>Register</h2>
           <form id="registrationForm">
               <label for="username">Username:</label>
               <input type="text" id="username" name="username" required><br><br>
-              <label for="password">Password:</label>
-              <input type="password" id="password" name="password"><br><br>
+              <!-- <label for="password">Password:</label>
+              <input type="password" id="password" name="password"><br><br> -->
               <input type="submit" value="Register">
           </form>
-      <div id="message"><p></p></div>
-      <script src="registration.js"></script>
-      </div> -->
-    
-    
+      <div id="message"></div>
+      </div>
     </main>
     <footer>
       <h2>This is our footer</h2>
@@ -108,3 +110,65 @@
     </div>
   </body>
 </html>
+<script>
+
+  const axiosInstance = axios.create({
+    baseURL: "http://localhost:5000", // Replace with your backend URL and port
+  });
+
+  document
+    .getElementById("loginForm")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const userType = document.getElementById("userType").value;
+      // const password = document.getElementById("password").value;
+      axiosInstance
+        .post("/login", {
+          username: username,
+          userType: userType,
+          // password: password,
+        })
+        .then((response) => {
+          console.log(response);
+          if (response.data.message == "Login successful") {
+            window.location.href = response.data.redirect;
+          } else {
+            document.getElementById("message").textContent = response.data.message;
+          }
+        })
+        .catch((error) => {
+          console.error("There was an error!", error);
+        });
+    });
+
+    document
+  .getElementById("registrationForm")
+  .addEventListener("submit", function (e) {
+    e.preventDefault();
+    const username = document.getElementById("username").value;
+    // const password = document.getElementById("password").value;
+
+    // Create a data object to send in the request body
+    const data = {
+      username: username,
+      // password: password,
+    };
+
+    // Send a POST request to the Flask API using Axios
+    axiosInstance
+      .post("/register", data, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        document.getElementById("message").textContent = response.data.message;
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        document.getElementById("message").textContent =
+          error.response.data.message;
+      });
+  });
+</script>
