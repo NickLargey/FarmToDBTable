@@ -1,13 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>F2DbT - Farm Landing</title>
-</head>
-<body>
-  <h1>Volunteer Landing Page</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <title>F2DbT - Volunteer Landing</title>
+  </head>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(rgb(78, 196, 99), #6b6969);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
+    }
+    main {
+      text-align: center;
+    }
+    header {
+      text-align: center;
+      background-color: rgba(51, 51, 51, 0.25);
+      color: #000;
+      padding: 20px;
+    }
+  </style>
+  <body>
+    <h1>Volunteer Queries</h1>
+    <form id="queryForm">
+      <label for="query">Select a query:</label>
+      <select id="query" name="query"></select>
+      <button type="submit">Submit</button>
+    </form>
+    <div id="results"></div>
 
-  
-</body>
+    <script>
+      // Function to populate the dropdown with options from the JSON file
+      function populateDropdown() {
+        // Load the JSON file containing queries
+        axios
+          .get("volunteerQueries.json")
+          .then((response) => {
+            const queries = response.data;
+            const queryDropdown = document.getElementById("query");
+
+            // Iterate through queries and add options to the dropdown
+            queries.forEach((queryObj) => {
+              const option = document.createElement("option");
+              option.value = queryObj.value;
+              option.textContent = queryObj.label;
+              queryDropdown.appendChild(option);
+            });
+          })
+          .catch((error) => {
+            console.error("Error loading queries:", error);
+          });
+      }
+
+      // Call the function to populate the dropdown when the page loads
+      window.onload = populateDropdown;
+      const axiosInstance = axios.create({
+        baseURL: "http://localhost:5000", // Replace with your backend URL and port
+      });
+      document
+        .getElementById("queryForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const query = document.getElementById("query").value;
+
+          // Send a POST request to the Flask API using Axios
+          axiosInstance
+            .post("/run-sql", { query: query })
+            .then((response) => {
+              const resultsContainer = document.getElementById("results");
+              resultsContainer.innerHTML = "";
+              console.log(response.data.result);
+              if (response.data.result.length > 0) {
+                response.data.result.forEach((r) => {
+                  const resultElement = document.createElement("p");
+                  resultElement.textContent = r;
+                  resultsContainer.appendChild(resultElement);
+                });
+              } else {
+                resultsContainer.textContent = "No results found.";
+              }
+            })
+            .catch((error) => {
+              const resultsContainer = document.getElementById("results");
+              resultsContainer.innerHTML = "";
+              resultsContainer.textContent = error;
+              console.error("Error:", error);
+            });
+        });
+    </script>
+  </body>
 </html>

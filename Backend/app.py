@@ -8,7 +8,7 @@ import json
 
 app = Flask(__name__)
 CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Lamlpdi1776@localhost:5433/farm2db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@localhost:5433/farm2db'
 db = SQLAlchemy()
 
 
@@ -94,14 +94,16 @@ def login():
     elif userType == 'school':
         user = SchoolUser.query.filter_by(sch_name=username).first()
         if user:
-            return jsonify({'message': user.pro_id}), 200
+            return jsonify({'message': "Login successful",
+                            'redirect': './School/school_index.html'}), 200
         else:
             return jsonify({'message': 'Invalid credentials'}), 401
 
     elif userType == 'volunteer':
         user = VolunteerUser.query.filter_by(vol_name=username).first()
         if user:
-            return jsonify({'message': user.pro_id}), 200
+            return jsonify({'message': "Login successful",
+                            'redirect': './Volunteer/volunteer_index.html'}), 200
         else:
             return jsonify({'message': 'Invalid credentials'}), 401
 
