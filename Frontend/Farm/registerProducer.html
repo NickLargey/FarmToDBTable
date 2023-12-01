@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Producer Registration</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   </head>
   <style>
     body {
@@ -25,6 +26,15 @@
       color: #000;
       padding: 20px;
     }
+    #message {
+      text-align: center;
+      color: #000;
+      padding: 20px;
+      margin: 1 rem;
+    }
+    #message button {
+      margin: 1rem;
+    }
   </style>
   <body>
     <header>
@@ -36,7 +46,7 @@
     </header>
     <main>
       <div class="registration">
-        <form id="registerForm">
+        <form id="registrationForm">
           <label for="username">Farm Name (This will be your username):</label>
           <input
             type="text"
@@ -100,6 +110,20 @@
   }
   window.onload = populateCounties;
 
+  function registrationSuccess() {
+    const message = document.getElementById("message");
+    message.textContent = "Registration successful!";
+    const button = document.createElement("button");
+    button.textContent = "Continue to my profile";
+    button.onclick = function () {
+      window.location.href = "./farmIndex.html";
+    };
+    message.appendChild(button);
+  }
+
+  const axiosInstance = axios.create({
+    baseURL: "http://localhost:5000", // Replace with your backend URL and port
+  });
   document
     .getElementById("registrationForm")
     .addEventListener("submit", function (e) {
@@ -136,13 +160,13 @@
           },
         })
         .then((response) => {
-          document.getElementById("message").textContent =
-            response.data.message;
+          registrationSuccess();
         })
         .catch((error) => {
           console.error("Error:", error);
           document.getElementById("message").textContent =
             error.response.data.message;
+          document.getElementById("registrationForm").reset();
         });
     });
 </script>

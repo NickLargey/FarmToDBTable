@@ -59,9 +59,11 @@
 
       // Call the function to populate the dropdown when the page loads
       window.onload = populateDropdown;
+
       const axiosInstance = axios.create({
         baseURL: "http://localhost:5000", // Replace with your backend URL and port
       });
+      
       document
         .getElementById("queryForm")
         .addEventListener("submit", function (e) {
