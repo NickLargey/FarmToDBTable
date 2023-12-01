@@ -67,6 +67,8 @@
       <p>This is the landing page for the Farm to DataBase Table project.</p>
     </header>
     <main>
+      <h2>What type of user are you?</h2>
+      
       <div class="login">
         <h2>If you have an existing account, please:</h2>
         <h2>Login</h2>
@@ -85,18 +87,14 @@
     </form>
     <div id="message"></div>
     </div>
-      <div class="registration">
-          <h2>If you do not have an existing account, please:</h2>
-          <h2>Register</h2>
+      
+          <h2>If you do not have an existing account, please register as a:</h2>
+          <div class="users">
+            <a href="./School/registerSchool.html">School</a>
+            <a href="./Farm/registerProducer.html">Producer</a>
+            <a href="./Volunteer/registerVolunteer.html">Volunteer</a>
           <form id="registrationForm">
-              <label for="username">Username:</label>
-              <input type="text" id="username" name="username" required><br><br>
-              <!-- <label for="password">Password:</label>
-              <input type="password" id="password" name="password"><br><br> -->
-              <input type="submit" value="Register">
-          </form>
-      <div id="message"></div>
-      </div>
+
     </main>
     <footer>
       <h2>This is our footer</h2>
@@ -135,34 +133,4 @@
           console.error("There was an error!", error);
         });
     });
-
-    document
-  .getElementById("registrationForm")
-  .addEventListener("submit", function (e) {
-    e.preventDefault();
-    const username = document.getElementById("username").value;
-    // const password = document.getElementById("password").value;
-
-    // Create a data object to send in the request body
-    const data = {
-      username: username,
-      // password: password,
-    };
-
-    // Send a POST request to the Flask API using Axios
-    axiosInstance
-      .post("/register", data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-      .then((response) => {
-        document.getElementById("message").textContent = response.data.message;
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        document.getElementById("message").textContent =
-          error.response.data.message;
-      });
-  });
 </script>

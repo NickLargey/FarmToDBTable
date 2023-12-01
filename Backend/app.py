@@ -8,7 +8,7 @@ import json
 
 app = Flask(__name__)
 CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@localhost:5433/farm2db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Lamlpdi1776@localhost:5433/farm2db'
 db = SQLAlchemy()
 
 
@@ -111,37 +111,83 @@ def login():
         return jsonify({'message': 'Invalid credentials'}), 401
 
 
-@app.route('/register', methods=['POST'])
-def register():
+@app.route('/registerProducer', methods=['POST'])
+def registerProducer():
     data = request.json
+    userType = data.get('userType')
     username = data.get('username')
+    email = data.get('email')
+    phone = data.get('phone')
+    address = data.get('address')
+    city = data.get('city')
+    state = data.get('state')
+    zip = data.get('zip')
+    county = data.get('county')
 
     # Check if the username already exists in the database
-    existing_user = User.query.filter_by(username=username).first()
+    existing_user = ProducerUser.query.filter_by(
+        pro_name=username, pro_address=address, pro_city=city).first()
     if existing_user:
-        return jsonify({'message': 'Username already exists'}), 400
+        return jsonify({'message': 'Producer already exists in system'}), 400
 
     # Create a new user
-    new_user = User(username=username)
+    new_user = ProducerUser(pro_name=username, pro_email=email, pro_phone=phone,
+                            pro_address=address, pro_city=city, pro_state=state, pro_zip=zip, pro_county=county)
     db.session.add(new_user)
     db.session.commit()
 
     return jsonify({'message': 'Registration successful'}), 201
 
 
-def execute_sql_query(sql_query, cursor):
-    try:
-        cursor.execute(sql_query)
+@app.route('/registerSchool', methods=['POST'])
+def registerSchool():
+    data = request.json
+    userType = data.get('userType')
+    username = data.get('username')
+    email = data.get('email')
+    phone = data.get('phone')
+    address = data.get('address')
+    city = data.get('city')
+    state = data.get('state')
+    zip = data.get('zip')
+    county = data.get('county')
 
-        # Fetch the results (if any)
-        results = cursor.fetchall()
+    # Check if the username already exists in the database
+    existing_user = SchoolUser.query.filter_by(
+        sch_name=username, sch_address=address, sch_city=city).first()
+    if existing_user:
+        return jsonify({'message': 'School already exists in system'}), 400
 
-        # Commit the transaction and close the connection
+    # Create a new user
+    new_user = SchoolUser(sch_name=username, sch_email=email, sch_phone=phone,
+                          sch_address=address, sch_city=city, sch_state=state, sch_zip=zip, sch_county=county)
+    db.session.add(new_user)
+    db.session.commit()
 
-        return results
+    return jsonify({'message': 'Registration successful'}), 201
 
-    except Exception as e:
-        return str(e)
+
+@app.route('/registerVolunteer', methods=['POST'])
+def registerVolunteer():
+    data = request.json
+    username = data.get('username')
+    email = data.get('email')
+    phone = data.get('phone')
+    hub = data.get('hub')
+
+    # Check if the username already exists in the database
+    existing_user = VolunteerUser.query.filter_by(
+        vol_name=username, vol_phone=phone).first()
+    if existing_user:
+        return jsonify({'message': 'Volunteer already exists in system'}), 400
+
+    # Create a new user
+    new_user = VolunteerUser(
+        vol_name=username, vol_email=email, vol_phone=phone, vol_hub=hub)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({'message': 'Registration successful'}), 201
 
 # Define an endpoint to receive and process SQL queries
 
@@ -159,10 +205,13 @@ def run_sql():
         # Connect to your PostgreSQL database
         with psycopg2.connect(**db_config) as connection:
             with connection.cursor() as cursor:
-                query_result = execute_sql_query(sql_query, cursor)
+                cursor.execute(sql_query)
+
+                # Fetch the results (if any)
+                results = cursor.fetchall()
                 connection.commit()
                 # Return the results as JSON
-        return jsonify({'result': query_result})
+        return jsonify({'result': results})
 
     except Exception as e:
         return jsonify({'error': str(e)})

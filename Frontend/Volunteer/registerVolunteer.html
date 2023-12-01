@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Producer Registration</title>
+  </head>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(rgb(78, 196, 99), #6b6969);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
+    }
+    main {
+      padding: 0%;
+      margin: 5rem;
+      text-align: center;
+    }
+    header {
+      text-align: center;
+      background-color: rgba(51, 51, 51, 0.25);
+      color: #000;
+      padding: 20px;
+    }
+  </style>
+  <body>
+    <header>
+      <h1>Producer Registration</h1>
+      <h2>Welcome to our Database</h2>
+      <button onclick="window.location.href='../index.html'">
+        Back to Landing
+      </button>
+    </header>
+    <main>
+      <div class="registration">
+        <form id="registerForm">
+          <label for="username">Name (This will be your username):</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            required
+          /><br /><br />
+          <label for="email">Email Address:</label>
+          <input type="email" id="email" name="email" required /><br /><br />
+          <label for="phone">Phone Number:</label>
+          <input type="text" id="phone" name="phone" required /><br /><br />
+          <label for="hub">Which Hub would you like to Volunteer at?</label>
+          <select id="hub" name="hub" required></select
+          ><br /><br />
+
+          <input type="submit" value="Register" />
+        </form>
+        <div id="message"></div>
+      </div>
+    </main>
+  </body>
+</html>
+<script>
+  function populateHubs() {
+    const maineCounties = {
+      Cumberland: 1,
+      Franklin: 2,
+      Piscataquis: 3,
+      Kennebec: 4,
+      Oxford: 5,
+      Androscoggin: 6,
+      Waldo: 7,
+      Washington: 8,
+      York: 9,
+      Lincoln: 10,
+      Knox: 11,
+      Hancock: 12,
+      Sagadahoc: 13,
+      Somerset: 14,
+      Aroostook: 15,
+      Penobscot: 16,
+    };
+
+    const hubOption = document.getElementById("hub");
+    for (const county in maineCounties) {
+      if (maineCounties.hasOwnProperty(county)) {
+        const option = document.createElement("option");
+        option.value = county;
+        option.textContent = county;
+        hubOption.appendChild(option);
+      }
+    }
+  }
+  window.onload = populateHubs;
+
+  document
+    .getElementById("registrationForm")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const email = document.getElementById("email").value;
+      const phone = document.getElementById("phone").value;
+      const hub = document.getElementById("hub").value;
+
+      // const password = document.getElementById("password").value;
+
+      // Create a data object to send in the request body
+      const data = {
+        username: username,
+        email: email,
+        phone: phone,
+        hub: hub,
+        // password: password,
+      };
+
+      // Send a POST request to the Flask API using Axios
+      axiosInstance
+        .post("/registerVolunteer", data, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+        .then((response) => {
+          document.getElementById("message").textContent =
+            response.data.message;
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          document.getElementById("message").textContent =
+            error.response.data.message;
+        });
+    });
+</script>
