@@ -1,7 +1,7 @@
 {
   "dbname": "farm2db",
   "user": "postgres",
-  "password": "Lamlpdi1776",
+  "password": "password",
   "host": "localhost",
   "port": 5433
 }
