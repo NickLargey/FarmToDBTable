@@ -1,128 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../styles.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <link rel="stylesheet" href="../styles.css" />
     <title>Producer Registration</title>
-  </head>
-  <body>
-    <header>
-      <h1>Producer Registration</h1>
-      <h2>Welcome to our Database</h2>
-      <button onclick="window.location.href='../index.html'">
-        Back to Landing
-      </button>
-    </header>
-    <main>
-      <div class="registration">
-        <form id="registrationForm">
-          <label for="username">Name (This will be your username):</label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            required
-          /><br /><br />
-          <label for="email">Email Address:</label>
-          <input type="email" id="email" name="email" required /><br /><br />
-          <label for="phone">Phone Number:</label>
-          <input type="text" id="phone" name="phone" required /><br /><br />
-          <label for="hub">Which Hub would you like to Volunteer at?</label>
-          <select id="hub" name="hub" required></select
-          ><br /><br />
+</head>
 
-          <input type="submit" value="Register" />
-        </form>
-        <div id="message"></div>
-      </div>
-    </main>
-  </body>
-</html>
+<body>
 
-<script>
-  function populateHubs() {
-    const maineCounties = {
-      Cumberland: 1,
-      Franklin: 2,
-      Piscataquis: 3,
-      Kennebec: 4,
-      Oxford: 5,
-      Androscoggin: 6,
-      Waldo: 7,
-      Washington: 8,
-      York: 9,
-      Lincoln: 10,
-      Knox: 11,
-      Hancock: 12,
-      Sagadahoc: 13,
-      Somerset: 14,
-      Aroostook: 15,
-      Penobscot: 16,
-    };
+    <body style="background-color: #8b9a46;"></body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Volunteer Registration</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-6 form-container">
+                <form id="registrationForm" class="needs-validation" novalidate>
+                    <div class="form-group">
+                        <label for="username">Name (This will be your username):</label>
+                        <input type="text" class="form-control form-input" id="username" name="username" required>
+                        <div class="invalid-feedback">Please enter a username.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address:</label>
+                        <input type="email" class="form-control form-input" id="email" name="email" required>
+                        <div class="invalid-feedback">Please enter a valid email address.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number:</label>
+                        <input type="text" class="form-control form-input" id="phone" name="phone" required>
+                        <div class="invalid-feedback">Please enter a phone number.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="hub">Which Hub would you like to Volunteer at?</label>
+                        <select id="hub" name="hub" class="form-control form-input" required></select>
+                        <div class="invalid-feedback">Please select a hub.</div>
+                    </div>
+                    <button type="submit" class="btn btn-custom-primary">Register</button>
+                    <button onclick="window.location.href='../index.html'" class="btn btn-custom-outline-primary">Go
+                        Back</button>
+                </form>
+                <div id="message" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
 
-    const hubOption = document.getElementById("hub");
-    for (const county in maineCounties) {
-      if (maineCounties.hasOwnProperty(county)) {
-        const option = document.createElement("option");
-        option.value = maineCounties[county];
-        option.textContent = county;
-        hubOption.appendChild(option);
-      }
-    }
-  }
-  window.onload = populateHubs;
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function populateHubs() {
+            const maineCounties = {
+                Cumberland: 1,
+                Franklin: 2,
+                Piscataquis: 3,
+                Kennebec: 4,
+                Oxford: 5,
+                Androscoggin: 6,
+                Waldo: 7,
+                Washington: 8,
+                York: 9,
+                Lincoln: 10,
+                Knox: 11,
+                Hancock: 12,
+                Sagadahoc: 13,
+                Somerset: 14,
+                Aroostook: 15,
+                Penobscot: 16,
+            };
 
-  function registrationSuccess() {
-    const message = document.getElementById("message");
-    message.textContent = "Registration successful!";
-    const button = document.createElement("button");
-    button.textContent = "Continue to my profile";
-    button.onclick = function () {
-      window.location.href = "./volunteerIndex.html";
-    };
-    message.appendChild(button);
-  }
+            const hubOption = document.getElementById("hub");
+            for (const county in maineCounties) {
+                if (maineCounties.hasOwnProperty(county)) {
+                    const option = document.createElement("option");
+                    option.value = maineCounties[county];
+                    option.textContent = county;
+                    hubOption.appendChild(option);
+                }
+            }
+        }
 
-  const axiosInstance = axios.create({
-    baseURL: "http://localhost:5000", // Replace with your backend URL and port
-  });
-  document
-    .getElementById("registrationForm")
-    .addEventListener("submit", function (e) {
-      e.preventDefault();
-      const username = document.getElementById("username").value;
-      const email = document.getElementById("email").value;
-      const phone = document.getElementById("phone").value;
-      const hub = document.getElementById("hub").value;
+        function registrationSuccess(username) {
+            const message = document.getElementById("message");
+            message.textContent = "Registration successful!";
+            const button = document.createElement("button");
+            button.className = "btn btn-success mt-3";
+            button.textContent = "Continue to my profile";
+            button.onclick = function () {
+                window.location.href = `./volunteerLanding.html?volunteer=${encodeURIComponent(username)}`;
+            };
+            message.appendChild(button);
+        }
 
-      // const password = document.getElementById("password").value;
-
-      // Create a data object to send in the request body
-      const data = {
-        username: username,
-        email: email,
-        phone: phone,
-        hub: hub,
-        // password: password,
-      };
-
-      // Send a POST request to the Flask API using Axios
-      axiosInstance
-        .post("/registerVolunteer", data, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-        .then((response) => {
-          registrationSuccess();
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-          document.getElementById("message").textContent =
-            error.response.data.message;
-          document.getElementById("registrationForm").reset();
+        const axiosInstance = axios.create({
+            baseURL: "http://localhost:5001"
         });
-    });
-</script>
+
+        document.getElementById("registrationForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const username = document.getElementById("username").value;
+            const email = document.getElementById("email").value;
+            const phone = document.getElementById("phone").value;
+            const hub = document.getElementById("hub").value;
+
+            const data = { username, email, phone, hub };
+
+            axiosInstance
+                .post("/registerVolunteer", data, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                })
+                .then((response) => {
+                    registrationSuccess(username); // Pass the username here
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                    document.getElementById("message").textContent = error.response.data.message;
+                    document.getElementById("registrationForm").reset();
+                });
+        });
+
+        window.onload = populateHubs;
+    </script>
+</body>
+
+</html>

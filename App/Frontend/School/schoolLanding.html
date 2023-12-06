@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>School Dashboard - Farm to School Hub</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <style>
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+            /* Adjust alignment */
+            flex-wrap: wrap;
+        }
+
+        .flex-item,
+        .card {
+            flex: 0 0 24%;
+            /* Adjust the flex-basis to 24% to fit 4 items in a row */
+            margin: 0.5%;
+            /* Small margin for spacing */
+            height: 600px;
+            /* Adjust as needed */
+            overflow: auto;
+        }
+
+        header {
+            width: 100%;
+            background-color: #8b9a46;
+            /* Example color, replace with your preferred color */
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        iframe {
+            width: 100%;
+            height: 500px;
+        }
+
+        .container {
+            width: 100%;
+            /* Ensure container takes full width */
+            max-width: none;
+            /* Override Bootstrap's max-width if necessary */
+        }
+
+        .section-title {
+            padding: 10px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="container">
+        <h1>School Hub Dashboard</h1>
+        <button id="backButton" class="btn-custom-primary">Back to Login</button>
+    </header>
+
+    <div class="container flex-container">
+        <!-- Harvest Feed Section -->
+        <div class="card flex-item">
+            <div class="card-header">
+                Recently Harvested - Available at Hub
+            </div>
+            <div class="card-body">
+                <div id="harvestFeedContent"><!-- Content populated by JS --></div>
+            </div>
+        </div>
+
+        <!-- Create Purchase Order Section -->
+        <div class="card flex-item">
+            <div class="card-header">
+                Create Purchase Order
+            </div>
+            <div class="card-body">
+                <form id="createPurchaseOrderForm">
+                    <div class="form-group">
+                        <label for="foodItemSelect">Select Food Item:</label>
+                        <select class="form-control" id="foodItemSelect">
+                            <!-- Options populated by JS -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Quantity:</label>
+                        <input type="number" class="form-control" id="quantity" required>
+                    </div>
+                    <button type="submit" class="btn-custom-primary">Create Order</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Recent Purchase Orders Section -->
+        <div class="card flex-item">
+            <div class="card-header">
+                Recent Purchase Orders
+            </div>
+            <div class="card-body" id="recentOrdersContent">
+                <!-- Content populated by JS -->
+            </div>
+        </div>
+
+        <!-- Search Widget Embedded as an Iframe -->
+        <div class="flex-item">
+            <div class="section-title">Advanced Search</div>
+            <iframe src="../searchWidget.html" style="border:none;"></iframe>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('backButton').addEventListener('click', function () {
+            window.location.href = '../index.html';
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const schoolName = getSchoolNameFromURL();
+            if (schoolName) {
+                document.title = schoolName + " - School Dashboard"; // Set the document title
+                document.querySelector('header h1').textContent = schoolName + " Hub Dashboard"; // Update header text
+            }
+            loadHarvestFeed(schoolName);
+            loadFoodItems(schoolName);
+            loadRecentOrders(schoolName);
+        });
+
+        function getSchoolNameFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('school');
+        }
+
+        function loadHarvestFeed(schoolName) {
+            axios.get(`http://localhost:5001/api/harvest-feed?school=${schoolName}`)
+                .then(response => {
+                    const feedItemsHtml = response.data.map(item => `
+                        <div class="harvest-feed-item">
+                            <h5>${item.fi_name}</h5>
+                            <p>Harvested on: ${item.fi_date_harvested}</p>
+                            <p>Quantity: ${item.fi_quantity}</p>
+                        </div>
+                    `).join('');
+                    document.getElementById('harvestFeedContent').innerHTML = feedItemsHtml;
+                })
+                .catch(error => {
+                    console.error('Error fetching harvest feed:', error);
+                    document.getElementById('harvestFeedContent').innerHTML = '<p>Error loading harvest feed.</p>';
+                });
+        }
+
+        function loadFoodItems(schoolName) {
+            axios.get(`http://localhost:5001/api/search-food-items`, { params: { school: schoolName } })
+                .then(response => {
+                    const foodItemOptions = response.data
+                        .filter(item => item.fi_quantity > 0)
+                        .map(item => `
+                            <option value="${item.fi_id}">
+                                ${item.fi_name} - Qty: ${item.fi_quantity} - Producer: ${item.farm_name} - Harvested: ${item.fi_date_harvested} - Expires: ${item.fi_est_expiration}
+                            </option>
+                        `).join('');
+                    document.getElementById('foodItemSelect').innerHTML = foodItemOptions;
+                })
+                .catch(error => {
+                    console.error('Error fetching food items:', error);
+                });
+        }
+
+        function loadRecentOrders(schoolName) {
+            axios.get(`http://localhost:5001/api/recent-orders`, { params: { school: schoolName } })
+                .then(response => {
+                    const ordersHtml = response.data.map(order => `
+                        <div class="order-item">
+                            <h5>Order ID: ${order.pur_id}</h5>
+                            <p>Qty: ${order.quantity} - Food Item: ${order.food_item_name} </p>
+                            <p>Status: ${order.pur_status}</p>
+                            <p>Date: ${order.pur_date}</p>
+                        </div>
+                    `).join('');
+                    document.getElementById('recentOrdersContent').innerHTML = ordersHtml;
+                })
+                .catch(error => {
+                    console.error('Error fetching recent orders:', error);
+                    document.getElementById('recentOrdersContent').innerHTML = '<p>Error loading recent orders.</p>';
+                });
+        }
+
+        document.getElementById('createPurchaseOrderForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const form = this;
+            const schoolName = getSchoolNameFromURL();
+            const foodItemId = document.getElementById('foodItemSelect').value;
+            const quantity = document.getElementById('quantity').value;
+
+            axios.post('http://localhost:5001/api/create-purchase-order', {
+                school_name: schoolName,
+                fi_id: foodItemId,
+                quantity: quantity
+            })
+                .then(response => {
+                    alert('Purchase order created successfully. Order ID: ' + response.data.purchase_order_id);
+                    loadRecentOrders(schoolName); // Reload recent orders
+                    loadFoodItems(schoolName); // Reload food items
+                    loadRecentOrders(schoolName);
+                    loadHarvestFeed(schoolName);
+                    form.reset();
+                })
+                .catch(error => {
+                    console.error('Error creating purchase order:', error);
+                    alert('Failed to create purchase order.');
+                });
+        });
+    </script>
+</body>
+
+</html>
+
+

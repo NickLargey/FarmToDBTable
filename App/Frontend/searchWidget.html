@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Widget</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .search-widget-container {
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin: auto;
+        }
+
+        .form-section {
+            margin-bottom: 15px;
+        }
+
+        .form-section label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-section select,
+        .form-section input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .btn-custom-primary {
+            background-color: #4a7c59;
+            border-color: #4a7c59;
+            color: white;
+        }
+
+        .btn-custom-primary:hover {
+            background-color: #366b47;
+            border-color: #366b47;
+        }
+
+        .btn-custom-outline-primary {
+            border-color: #4a7c59;
+            color: #4a7c59;
+        }
+
+        .btn-custom-outline-primary:hover {
+            background-color: #4a7c59;
+            color: white;
+        }
+
+        .btn-custom-primary:hover {
+            background-color: #45a049;
+        }
+
+        .select2-container--default .select2-selection--multiple {
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="search-widget-container">
+        <form class="form-container" id="searchForm">
+            <div class="form-section">
+                <label for="tableSelect">Select Category:</label>
+                <select id="tableSelect" onchange="populateAttributeDropdown()">
+                    <option value="HUB">Hub</option>
+                    <option value="PRODUCER">Producer</option>
+                    <option value="SCHOOL">School</option>
+                    <option value="FOOD_ITEM">Food Item</option>
+                    <option value="VOLUNTEER">Volunteer</option>
+                    <option value="ROLE_SLOT">Role</option>
+                    <option value="PURCHASE_ORDER">Purchase Order</option>
+                </select>
+            </div>
+
+            <div class="form-section">
+                <label for="attributeSelect">Choose Attribute:</label>
+                <select id="attributeSelect" multiple></select>
+            </div>
+
+            <div class="form-section">
+                <label for="searchQuery">Enter Keyword:</label>
+                <input type="text" id="searchQuery" class="form-input">
+            </div>
+
+            <div class="form-section" id="dateRangeInputs" style="display: none;">
+                <label for="dateFrom">Date From:</label>
+                <input type="date" id="dateFrom" class="form-input">
+                <label for="dateTo">Date To:</label>
+                <input type="date" id="dateTo" class="form-input">
+            </div>
+
+            <div class="form-section">
+                <label for="relationshipSelect">Filter by Relationship (Optional, confirm one matching category
+                    above):</label>
+                <select id="relationshipSelect">
+                    <option value="">None</option>
+                    <option value="SCHOOL-PURCHASE_ORDER">School and Purchase Order</option>
+                    <option value="HUB-PRODUCER">Hub and Producer</option>
+                    <option value="HUB-SCHOOL">Hub and School</option>
+                    <option value="HUB-ROLE_SLOT">Hub and Role</option>
+                    <option value="PRODUCER-FOOD_ITEM">Producer and Food Item</option>
+                    <option value="VOLUNTEER-ROLE_SLOT">Volunteer and Role</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-custom-primary">Search</button>
+        </form>
+
+        <div id="searchResults" class="search-results-container"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+
+    <script>
+        const attributeAliases = {
+            'HUB': {
+                'hub_id': 'Hub ID',
+                'hub_name': 'Hub Name',
+                'hub_address': 'Hub Address',
+                'hub_city': 'Hub City',
+                'hub_state': 'State',
+                'hub_zip': 'ZIP Code',
+                'hub_hours': 'Operational Hours',
+                'hub_county': 'County'
+            },
+            'PRODUCER': {
+                'pro_id': 'Producer ID',
+                'pro_name': 'Producer Name',
+                'pro_email': 'Email',
+                'pro_phone': 'Phone',
+                'pro_address': 'Address',
+                'pro_city': 'City',
+                'pro_state': 'State',
+                'pro_zip': 'ZIP Code',
+                'pro_county': 'County'
+            },
+            'SCHOOL': {
+                'sch_id': 'School ID',
+                'sch_name': 'School Name',
+                'sch_email': 'Email',
+                'sch_phone': 'Phone',
+                'sch_address': 'Address',
+                'sch_city': 'City',
+                'sch_state': 'State',
+                'sch_zip': 'ZIP Code',
+                'sch_county': 'County'
+            },
+            'FOOD_ITEM': {
+                'fi_id': 'Food Item ID',
+                'fi_name': 'Name',
+                'fi_description': 'Description',
+                'fi_macro': 'Macro Nutrients',
+                'fi_quantity': 'Quantity',
+                'fi_cost_per_quantity': 'Cost per Quantity',
+                'fi_date_harvested': 'Date Harvested',
+                'fi_est_expiration': 'Estimated Expiration',
+                'fi_unit': 'Unit'
+            },
+            'VOLUNTEER': {
+                'vol_id': 'Volunteer ID',
+                'vol_name': 'Name',
+                'vol_email': 'Email',
+                'vol_phone': 'Phone',
+                'vol_hub': 'Hub ID'
+            },
+            'ROLE_SLOT': {
+                'vrol_id': 'Role Slot ID',
+                'vrol_name': 'Name',
+                'vrol_description': 'Description',
+                'vrol_dates': 'Dates',
+                'vrol_start_time': 'Start Time',
+                'vrol_end_time': 'End Time'
+            },
+            'PURCHASE_ORDER': {
+                'pur_id': 'Purchase Order ID',
+                'pur_date': 'Date',
+                'pur_quantity': 'Quantity',
+                'pur_total_price': 'Total Price',
+                'pur_fi_id': 'Food Item ID',
+                'pur_status': 'Status'
+            }
+        };
+
+        function populateAttributeDropdown() {
+            const tableSelect = document.getElementById('tableSelect');
+            const attributeSelect = document.getElementById('attributeSelect');
+            attributeSelect.innerHTML = '';
+
+            const selectedTable = tableSelect.value;
+            const attributes = attributeAliases[selectedTable];
+
+            const dateAttributes = ['fi_date_harvested', 'fi_est_expiration', 'pur_date', 'vrol_dates']; // Date attributes
+
+            Object.keys(attributes).forEach(attr => {
+                const option = document.createElement('option');
+                option.value = attr;
+                option.textContent = attributes[attr];
+                attributeSelect.appendChild(option);
+            });
+
+            attributeSelect.onchange = function () {
+                let showDateRange = Array.from(this.selectedOptions).some(option => dateAttributes.includes(option.value));
+                const dateRangeInputs = document.getElementById('dateRangeInputs');
+                const searchQueryInput = document.getElementById('searchQuery').parentNode;
+                if (showDateRange) {
+                    dateRangeInputs.style.display = 'block';
+                    searchQueryInput.style.display = 'none'; // Hide the keyword input
+                } else {
+                    dateRangeInputs.style.display = 'none';
+                    searchQueryInput.style.display = 'block'; // Show the keyword input
+                }
+            };
+        }
+
+        function sanitizeInput(input) {
+            const tagBody = '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*';
+            const tagOrComment = new RegExp(
+                '<(?:'
+                // Comment body.
+                + '!--(?:(?:-*[^->])*--+|-?)'
+                // Special "raw text" elements whose content should be elided.
+                + '|script\\b' + tagBody + '>[\\s\\S]*?</script\\s*'
+                + '|style\\b' + tagBody + '>[\\s\\S]*?</style\\s*'
+                // Regular name
+                + '|/?[a-z]'
+                + tagBody
+                + ')>',
+                'gi');
+            let oldInput;
+            do {
+                oldInput = input;
+                input = input.replace(tagOrComment, '');
+            } while (input !== oldInput);
+            return input.replace(/</g, '&lt;');
+        }
+        
+        
+
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const table = document.getElementById('tableSelect').value;
+            const attribute = document.getElementById('attributeSelect').value;
+            const query = sanitizeInput(document.getElementById('searchQuery').value);
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const relationship = document.getElementById('relationshipSelect').value;
+
+            let joinQuery = determineJoinQuery(table, relationship);
+            
+            const portNumber = 5001; // Replace with your Flask server's port number
+            const apiUrl = `http://localhost:${portNumber}/search`; // Replace with your API endpoint
+            
+            const requestBody = {
+                table,
+                attribute,
+                query,
+                dateFrom,
+                dateTo,
+                joinQuery,
+            };
+            console.log(JSON.stringify(requestBody));
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultsContainer = document.getElementById('searchResults');
+                resultsContainer.innerHTML = formatSearchResults(data, table);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        function determineJoinQuery(mainTable, selectedRelation) {
+            const relations = {
+                'SCHOOL': {
+                    'HUB-SCHOOL': {
+                        joinTable: 'HUB_SCHOOL',
+                        secondaryTable: 'HUB',
+                        secondaryKey: 'hub_id'
+                    },
+                    'SCHOOL-PURCHASE_ORDER': {
+                        joinTable: 'SCHOOL_PURCHASE_ORDER',
+                        secondaryTable: 'PURCHASE_ORDER',
+                        secondaryKey: 'pur_id'
+                    }
+                },
+                'HUB': {
+                    'HUB-SCHOOL': {
+                        joinTable: 'HUB_SCHOOL',
+                        secondaryTable: 'SCHOOL',
+                        secondaryKey: 'sch_id'
+                    },
+                    'HUB-PRODUCER': {
+                        joinTable: 'HUB_PRODUCER',
+                        secondaryTable: 'PRODUCER',
+                        secondaryKey: 'pro_id'
+                    },
+                    'HUB-ROLE_SLOT': {
+                        joinTable: 'HUB_ROLE_SLOT',
+                        secondaryTable: 'ROLE_SLOT',
+                        secondaryKey: 'vrol_id'
+                    }
+                },
+                // Add other main tables and their relations as needed
+            };
+        
+            let joinSQL = '';
+        
+            const relation = relations[mainTable] && relations[mainTable][selectedRelation];
+        
+            if (relation) {
+                const primaryKey = getPrimaryKey(mainTable);
+                joinSQL = `JOIN ${relation.joinTable} ON ${mainTable}.${primaryKey} = ${relation.joinTable}.${primaryKey} `;
+                joinSQL += `JOIN ${relation.secondaryTable} ON ${relation.joinTable}.${relation.secondaryKey} = ${relation.secondaryTable}.${relation.secondaryKey}`;
+            }
+        
+            return joinSQL.trim();
+        }
+        
+        function getPrimaryKey(table) {
+            switch (table) {
+                case 'SCHOOL':
+                    return 'sch_id';
+                case 'HUB':
+                    return 'hub_id';
+                case 'PRODUCER':
+                    return 'pro_id';
+                case 'FOOD_ITEM':
+                    return 'fi_id';
+                case 'VOLUNTEER':
+                    return 'vol_id';
+                case 'ROLE_SLOT':
+                    return 'vrol_id';
+                case 'PURCHASE_ORDER':
+                    return 'pur_id';
+                // Add cases for other tables if necessary
+                default:
+                    return '';
+            }
+        }
+        
+        
+        
+
+        function formatSearchResults(data, table) {
+            if (!data || !data.results || data.results.length === 0) {
+                return 'No results found.';
+            }
+        
+            // Mapping of attribute prefixes to table keys
+            const prefixToTableKey = {
+                'sch': 'SCHOOL',
+                'hub': 'HUB',
+                'pro': 'PRODUCER',
+                'fi': 'FOOD_ITEM',
+                'vol': 'VOLUNTEER',
+                'vrol': 'ROLE_SLOT', // updated prefix for ROLE_SLOT
+                'pur': 'PURCHASE_ORDER'
+                // Add other mappings as needed
+            };
+        
+            return data.results.map(result => {
+                return Object.keys(result).map(attr => {
+                    // Extract prefix and find corresponding table key
+                    const prefix = attr.split('_')[0];
+                    const tableKey = prefixToTableKey[prefix] || prefix.toUpperCase();
+        
+                    // Use the alias if available, else default to attribute name
+                    const attributeLabel = attributeAliases[tableKey] && attributeAliases[tableKey][attr] 
+                                            ? attributeAliases[tableKey][attr] 
+                                            : attr;
+                    return `${attributeLabel}: ${result[attr]}`;
+                }).join('<br>');
+            }).join('<hr>'); // Separate entries with a horizontal line
+        }
+        
+        function selectAllAttributes() {
+            const attributeSelect = document.getElementById('attributeSelect');
+            for (let i = 0; i < attributeSelect.options.length; i++) {
+                attributeSelect.options[i].selected = true;
+            }
+        }
+
+        window.onload = populateAttributeDropdown;
+    </script>
+</body>
+
+</html>
