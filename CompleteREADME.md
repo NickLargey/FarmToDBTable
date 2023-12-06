@@ -1,5 +1,7 @@
 # FarmToDBTable Project Comprehensive README
 
+Link: https://github.com/NickLargey/FarmToDBTable/
+
 ## Introduction
 
 FarmToDBTable is an innovative project designed to enhance the food supply chain in Maine by connecting local producers, schools, and volunteers through a robust database system. This system, leveraging a PostgreSQL database and a Flask-based web application, facilitates the sourcing, distribution, and management of locally produced food.
@@ -47,6 +49,7 @@ Run the script to create and populate the database:
 ```bash
 python create_db_and_fill.py
 ```
+You must go into Pgadmin and click on the FarmtoDB to initialize your server, then minimize.
 
 ### Step 5: Launch the Flask Backend
 
