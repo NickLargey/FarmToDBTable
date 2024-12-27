@@ -12,7 +12,7 @@ html {
 }
 
 .hero-image {
-  background: url('Images/eggs.jpg') no-repeat center center;
+  background: url("Images/eggs.jpg") no-repeat center center;
   background-size: cover;
   flex: 1;
   /* Adjust to control the size of the hero image */
@@ -76,7 +76,6 @@ p {
   padding: 10px;
 }
 
-
 .form-container {
   background-color: rgba(255, 255, 255, 0.8);
   padding: 20px;
@@ -85,6 +84,7 @@ p {
 }
 
 .form-input {
+  text-overflow: ellipsis;
   margin-bottom: 15px;
   padding: 10px;
   border: 1px solid #ccc;
