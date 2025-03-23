@@ -1,5 +1,7 @@
 # FarmToDBTable Project Comprehensive README
 
+### Created by: Aimee Haas, Sean Fletcher & Nick Largey
+
 Link: https://github.com/NickLargey/FarmToDBTable/
 
 ## Introduction
