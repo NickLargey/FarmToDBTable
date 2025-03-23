@@ -2,8 +2,6 @@
 
 ### Created by: Aimee Haas, Sean Fletcher & Nick Largey
 
-Link: https://github.com/NickLargey/FarmToDBTable/
-
 ## Introduction
 
 FarmToDBTable is an innovative project designed to enhance the food supply chain in Maine by connecting local producers, schools, and volunteers through a robust database system. This system, leveraging a PostgreSQL database and a Flask-based web application, facilitates the sourcing, distribution, and management of locally produced food.
