@@ -49,6 +49,7 @@ Run the script to create and populate the database:
 ```bash
 python create_db_and_fill.py
 ```
+
 You must go into Pgadmin and click on the FarmtoDB to initialize your server, then minimize.
 
 ### Step 5: Launch the Flask Backend
@@ -77,12 +78,14 @@ Keep this terminal open to maintain the backend service.
 ### Dashboard Functionality
 
 - **School Dashboard**:
+
   - View the latest food items at the school's hub (Harvest Feed).
   - Create Purchase Orders from available food items.
   - View recent Purchase Orders.
   - Access the Advanced Search Widget.
 
 - **Producer Dashboard**:
+
   - Track items available at the hub.
   - Add new food items to the hub.
   - Monitor Orders in Progress.
@@ -98,7 +101,7 @@ Keep this terminal open to maintain the backend service.
 
 - **Flask Backend**: The Flask backend serves the web application's API. Ensure it's always running while using the app.
 
-- **Database Setup**: The `create_db_and_fill.py` script initializes the database with mock data for testing, you don't need to run this again each time you use the app locally. If you do, know that all queries must be closed in Pgadmin before running as it deletes and rebuilds the database/it's contents to ensure reproducability without room for leftovers causing variance. 
+- **Database Setup**: The `create_db_and_fill.py` script initializes the database with mock data for testing, you don't need to run this again each time you use the app locally. If you do, know that all queries must be closed in Pgadmin before running as it deletes and rebuilds the database/it's contents to ensure reproducability without room for leftovers causing variance.
 
 - **Frontend Application**: The `index.html` in the `FrontEnd` folder is the entry point for the web application.
 
@@ -113,4 +116,3 @@ Keep this terminal open to maintain the backend service.
 For any queries or issues, feel free to reach out to the development team.
 
 ---
-
